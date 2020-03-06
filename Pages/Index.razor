@@ -1,0 +1,181 @@
+﻿@page "/"
+@using DevExpress.Blazor
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+<RadzenButton Text="@text"></RadzenButton>
+@code {
+  string text = "Hi";
+}
+<div>Examaple 1</div>
+<MultiSelectEditor1 Items="@AllBrowsers" Value="@TextValue" ValueSeparator=";"></MultiSelectEditor1>
+<div>Examaple 2</div>
+<MultiSelectEditor2 Items="@AllBrowsers" Value="@TextValue" ValueSeparator=";"></MultiSelectEditor2>
+<DxCalendar VisibleDate="@DateTime.Today">
+</DxCalendar>
+<DxButton RenderStyle="ButtonRenderStyle.Primary" RenderStyleMode="ButtonRenderStyleMode.Contained" Text="Click me!" />
+
+<DxTextBox @bind-Text="@TextEditValue"></DxTextBox>
+<MatButton>Test</MatButton>
+<MatFileUpload OnChange="@FilesReadyForContent"></MatFileUpload>
+<textarea style="width: 100%; max-height: 300px; height: 300px;">@fileContent</textarea>
+<MatSelect Label="Pick a Food Group" @bind-Value="value1">
+    <MatOptionString ></MatOptionString>
+    <MatOptionString Value="grains">Bread, Cereal, Rice, and Pasta</MatOptionString>
+    <MatOptionString Value="vegetables">Vegetables</MatOptionString>
+    <MatOptionString Value="fruit">Fruit</MatOptionString>
+</MatSelect>
+
+<span>@value1</span>
+<MatButton OnClick="@Click">Text @ButtonState</MatButton>
+<MatButton Raised="true">Raised</MatButton>
+<MatButton Unelevated="true">Unelevated</MatButton>
+<MatButton Outlined="true">Outlined</MatButton>
+<MatButton Dense="true">Dense</MatButton>
+<div id="overviewDemoDropZone" class="card custom-drop-zone jumbotron">
+    <svg class="drop-file-icon mb-3" role="img" style="width: 42px; height: 42px;"><use href="#drop-file-icon"></use></svg>
+    <span>Drag and Drop File Here</span><span class="m-1">or</span>
+    <button id="overviewDemoSelectButton" class="btn border-primary btn-primary m-1">Select File</button>
+</div>
+<div id="overviewDemoDropZone" class="card custom-drop-zone jumbotron">
+    <svg class="drop-file-icon mb-3" role="img" style="width: 42px; height: 42px;"><use href="#drop-file-icon"></use></svg>
+    <span>Drag and Drop File Here</span>
+</div>
+<DxUpload Name="myFile" UploadUrl="https://localhost:10000/api/Upload/UploadFile/"
+    AllowMultiFileUpload="true"
+    AllowedFileExtensions="@(new List<string> { ".jpg", ".jpeg", ".gif", ".png" })" 
+    MaxFileSize="4000000"
+    ExternalDropZoneCssSelector="#overviewDemoDropZone"
+    ExternalDropZoneDragOverCssClass="custom-drag-over border-light text-white">
+</DxUpload>
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>TextBox</h3>
+        <RadzenTextBox Style="margin-bottom: 20px" Change="@(args => Change(args, "TextBox"))" />
+        <br />
+        <h3>TextBox with placeholder</h3>
+        <RadzenTextBox Placeholder="Search..." Change="@(args => Change(args, "TextBox with placeholder"))" Style="margin-bottom: 20px" />
+        <br />
+        <h3>TextBox with 5 maximum characters</h3>
+        <RadzenTextBox @bind-Value="@value" MaxLength="5" Change="@(args => Change(args, "TextBox with 5 maximum characters"))" Style="margin-bottom: 20px" />
+        <h3>TextBox with change on every input</h3>
+        <RadzenTextBox Style="margin-bottom: 20px" @oninput="@(args => Change(args.Value.ToString(), "TextBox with change on every input"))" />
+        <br />
+        <h3>Disabled TextBox with change on every input</h3>
+        <RadzenTextBox Disabled="true" Style="margin-bottom: 20px" @oninput="@(args => Change(args.Value.ToString(), "Disabled TextBox with change on every input"))" />
+        <br />
+    </div>
+    <div class="col-md-6">
+        <h3>Events</h3>
+        <RadzenCard style="overflow: auto;height:500px;">
+            @foreach (var e in events.OrderByDescending(i => i.Key))
+            {
+                @e.Value
+                <br />
+            }
+        </RadzenCard>
+    </div>
+</div>
+
+@code {
+    string value;
+
+    Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+
+    void Change(string value, string name)
+    {
+        events.Add(DateTime.Now, $"{name} value changed to {value}");
+        StateHasChanged();
+    }
+}
+
+@code
+{
+    string ButtonState = "";
+
+    void Click(MouseEventArgs e)
+    {
+        ButtonState = "Clicked";
+    }
+
+}
+
+@code
+{
+    string value1;
+}
+
+@code
+{
+
+    string fileContent;
+
+    async Task FilesReadyForContent(IMatFileUploadEntry[] files)
+    {
+        try
+        {
+            var file = files.FirstOrDefault();
+            if (file == null)
+            {
+                return;
+            }
+
+            using (var stream = new MemoryStream())
+            {
+                var sw = Stopwatch.StartNew();
+                await file.WriteToStreamAsync(stream);
+                sw.Stop();
+                if (stream.Length > 1024 * 1024)
+                {
+                    fileContent = "";
+                    fileContent += $"Name:\t{file.Name}\r\n";
+                    fileContent += $"Type:\t{file.Type}\r\n";
+                    fileContent += $"LastModified:\t{file.LastModified}\r\n";
+                    fileContent += $"Size:\t{file.Size}\r\n";
+                    fileContent += $"Time:\t{sw.Elapsed}\r\n";
+                    fileContent += $"Speed:\t{(stream.Length / sw.Elapsed.TotalSeconds):N0}  b/s\r\n";
+                }
+                else
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    using (var reader = new StreamReader(stream))
+                    {
+                        fileContent = await reader.ReadToEndAsync();
+                    }
+                }
+            }
+        }
+
+        catch (Exception e)
+        {
+            fileContent = $"Error:\r\n{e.Message}\r\n{e.StackTrace}";
+        }
+        finally
+        {
+            await InvokeAsync(async () => { this.StateHasChanged(); });
+        }
+    }
+}
+
+@code {
+    string TextEditValue = "Some text";
+}
+
+@code {
+    string TextValue = "Chrome;Safari";
+    List<string> AllBrowsers;
+    protected override void OnInitialized() {
+        var allBrowsers = new List<string>();
+        allBrowsers.Add("Chrome");
+        allBrowsers.Add("Firefox");
+        allBrowsers.Add("IE");
+        allBrowsers.Add("Safari");
+        allBrowsers.Add("Opera");
+        allBrowsers.Add("Edge");
+        AllBrowsers = allBrowsers;
+    }
+}
